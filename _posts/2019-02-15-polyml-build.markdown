@@ -79,6 +79,21 @@ basis/build.sml:val () = Bootstrap.use "basis/TopLevelPolyML.sml" (* Add
 rootFunction to Poly/ML *)
 basis/TopLevelPolyML.sml: fun rootFunction () : unit = ...
 ```
+The `rootFunction`, depends on arguments, may call compiler to handle <br/>
+`--script <filename>`, or call `shell()` to enter REPL mode.<br/>
+And, `PolyML.compiler` has different phases, the first one is in<br/>
+`mlsource/MLCompiler/COMPILER_BODY.ML`.<br/>
+and the last one, is redefined in `basis/FinalPolyML.sml as follow:
+```
+fun polyCompiler (getChar: unit -> char option, parameters: compilerParameters list) = ...
+...
+structure PolyML =
+struct
+  open PolyML
+  val compiler = polyCompiler
+  ...
+end
+```
 
 
 # Reading progress
