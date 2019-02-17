@@ -120,5 +120,18 @@ ml_bind
 ```
 
 Now, what if i want to print verbose pass info? i.e, if i want to print<br/>
-the parsetree after pass, how can i do that? I need to follow the calling<br/>
-flow.
+the parsetree after pass, how can i do that?<br/>
+
+After reading `PolyMLCompiler.html`, and i found there is some flags:<br/>
+```sml
+val parsetree: bool ref
+val codetree: bool ref
+val codetreeAfterOpt: bool ref
+val assemblyCode: bool ref
+val pstackTrace: bool ref
+```
+So, if i want to check the parsetree, just set it to true:
+```sml
+PolyML.Compiler.parsetree := true
+```
+
