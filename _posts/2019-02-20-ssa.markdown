@@ -1,0 +1,26 @@
+---
+layout: post
+title:  "SSA - single static assignement"
+date:   2019-02-20 01:15:50 +0800
+categories: jekyll update
+---
+After reading "engineering a compiler", i think i get the idear of SSA. So i
+decided to write down some notes, otherwise i'll forget that.
+
+# What is SSA?
+
+# How to transform SSA ?
+## Find DF(Dominate frontier) of nodes
+TODO
+
+## Insert phi function
+TODO
+
+## Rename variables
+TODO
+
+## Convert back from SSA form
+TODO
+
+# Why SSA?
+(Maybe this section should be place in front.)
