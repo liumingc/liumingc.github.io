@@ -56,6 +56,9 @@ Having that idea, so polyc is just a script, which will call
 PolyML.export(fileName, main) to generate the object file, then link it into an
 executable binprogram.
 
+But running nm shows that the symbol table is incomplete, but use strings to
+show, there are some hidden symbols.
+
 # Lexing
 I should read `LEX_.ML`. The most important type is:
 ```sml
@@ -91,6 +94,25 @@ Otherwise, we call `parseToken` to get a new sym from the token stream.
 It seems that typecheck is done when parsing.<br/>
 It's hard to lookup the entry point of TYPE_TREE functor/structure, i only found
 some makeParseTypeXXX api being called in PARSE_DEC.<br/>
+
+The keyword `withtype` appears only in `datatype | abstype`, because in SML,
+datatype and type is used different.
+So when defining recursive types in datatype, you need to use the keyword
+`withtype`. i.e,
+```sml
+datatype valueMatching =
+  ValueMatch of ...
+| StructureMatch of { contentsMatch: structureMatch, ... }
+| TypeIdMatch of ...
+and ...
+withtype structureMatch = (int * valueMatching) list
+```
+STRUCTURES_.ML depends on STRUCT_VALS.ML, so you may find some definition in the
+latter file. In Overview.html, STRUCTVALSIG.sml appears before lexing/parsing.
+
+## Structure/Signature/Functor, typing
+functor/signature can only appear in prog(aka top dec).
+While structure can appear in dec or sig-spec.
 
 # Code generation
 ## codetree
@@ -148,8 +170,20 @@ Ident -> LoadForm
 structure/signature/functor -> ???
 Localdec (* local dec in dec and let dec in exp *) -> Newenv
 ```
+struct is repr as tuple.
+The code to handle structure is in STRUCTURES_.ML.
+In
+```sml
+val (structCode, nLocals) = STRUCTURES.gencodeStructs (parseTree, lex)
+```
+The struct/functor/signature is gone, the value becomes tuple. Maybe poly will
+extend the global env, to bind the structure/functor/signature name to the
+value. And the ref name to longid become a Local.
+
 Too many duplicate declarations and definitions, it's hard to find definitions.
 So sad.
+
+
 
 # The big picture
 
@@ -289,3 +323,46 @@ A:<br/>
 
 Q: How does polyml do pretty-print?<br/>
 A: i.e, codetree's pretty printing is done in BaseCodeTree.sml.
+
+# Doubts
+- functors definition:
+```sml
+type functors =
+  Functor of
+  {
+    name: string,
+    arg:  structVals,
+    result: signatures,
+    access: valAccess,
+    locations: locationProp list
+  }
+```
+Whye result's type is signatures, but not structVals?
+
+- types definite
+```sml
+type types =
+  TypeVar of typeVarForm
+| TypeConstruction of
+  {
+    name: string,
+    constr: typeConstrs,
+    args: type list,
+    locations: ...
+  }
+| FunctionType of
+  {
+    arg:  types,
+    result: types,
+  }
+| LabelledType of labelledRec
+| OverloadSet of
+  {
+    typeset: typeConstrs list
+  }
+| BadTypes
+| EmptyType
+```
+What is OverloadSet?
+There is not explicit syntax form. In INITIALISE_.ML, we found that operators
+such as +, - are Overloaded. I think it's kind of polymorphic.
