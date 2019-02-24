@@ -114,6 +114,42 @@ latter file. In Overview.html, STRUCTVALSIG.sml appears before lexing/parsing.
 functor/signature can only appear in prog(aka top dec).
 While structure can appear in dec or sig-spec.
 
+### Sharing
+Sharing is tricky. In STURCUTRES_.ML
+```sml
+functor STRUCTURES_ (
+...
+sharing LEX.Sharing = VALUEOPS.Sharing = ... = PRETTY.Sharing = ... = CODETREE
+)  := STRUCTURESSIG =
+struct ... end
+```
+But, LEX.Sharing is
+```sml
+structure Sharing:
+sig
+  type pretty = pretty
+  and lexan = lexan
+  and sys = sys
+end
+```
+while VALUEOPSSIG.sml's Sharing is
+```sml
+structure Sharing:
+sig
+  type lexan = lexan
+  type codetree = codetree
+  type pretty = pretty
+  ...
+end
+```
+It doesn't have type sys, and has more types(i.e codetree) than LEX.Sharing, so
+what really does `sharing str1 = str2` mean?
+sml97-defn explains that. struct sharing is not transitive, which means
+sharing A = B
+sharing B = C
+doesn't mean sharing A = C.
+And sharing struct is a composed form, base on type sharing.
+
 # Code generation
 ## codetree
 In CodeTree/BaseCodeTreeSig.sml,
@@ -181,9 +217,27 @@ extend the global env, to bind the structure/functor/signature name to the
 value. And the ref name to longid become a Local.
 
 Too many duplicate declarations and definitions, it's hard to find definitions.
-So sad.
+So sad. It's said that the duplicate declarations is to make module
+self-contained.
 
+The pretty-print functions of codetree is in CodeTree/BaseCodeTree.sml. Some
+function name can't grep defn, because the name is composed, i.e:
+```sml
+| LoadOperation {kind, address } =>
+  PrettyBlock (3, false, [],
+    [
+      PrettyString("Load" ^ BackendIntermediateCode.loadStoreKindRepr kind),
+      PrettyBreak (1, 0),
+      prettyAddress address
+    ]
+  )
+```
 
+```sml
+fun structureCode (str, strName, debugEnv, mkAddr, level):
+  { code: codeBinding list, load: codetree } = ...
+```
+codeBinding and codetree is defined in codetree.
 
 # The big picture
 
