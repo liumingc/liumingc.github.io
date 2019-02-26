@@ -1,0 +1,52 @@
+---
+layout: post
+title:  "Type"
+date:   2019-02-26 21:37:50 +0800
+categories: jekyll update
+---
+
+# Type inference
+How do we determine the type of this expression?
+```sml
+fn f => fn x => f (f x)
+```
+First, assign type variables to f, x etc.
+```
+fn f => fn x =>  f (f x)
+  'a ->   'b -> 'a ('a 'b)
+```
+and by `f x` we conclude that
+```
+f: 'b -> 'c
+```
+and by `f (f x)` we conclude that
+```
+'c = 'b
+```
+so the above expression has type:
+```
+('b -> 'b) -> 'b -> 'b
+```
+But we are moving a little too fast. Let's summarize it here:
+1. assign type variables to variables.
+2. build some equations by simple basic rules, 
+  - typeof(IntConst) : int
+  - typeof(StringConst) : string
+  - typeof(fun x => y) : typeof(x) -> typeof(y)
+  - typeof(rator rand) : 
+      if typeof(rand) = 'a and typeof(rator) = 'b -> 'c
+        then we get an equation 'a = 'b
+  - typeof(ifexp ...) etc
+3. solve the equations(how?)
+If there is a type equation, then we can propogate type to other variables. It
+should go one way, otherwise we are trampling and will not come to an end. The
+copy rules is as follows:
+1. copy from concrete type to type variables
+  replace 'a with int/bool
+2. copy from funtype to type variables
+  replace 'a with ('b -> 'c)
+3. reduce type variables, which means
+  if 'a = 'b
+    then consistently replace 'b with 'a.
+Hopefully by these rules, we can inference some types out of expressions.
+  

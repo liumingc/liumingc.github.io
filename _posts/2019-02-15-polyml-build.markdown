@@ -236,8 +236,24 @@ function name can't grep defn, because the name is composed, i.e:
 ```sml
 fun structureCode (str, strName, debugEnv, mkAddr, level):
   { code: codeBinding list, load: codetree } = ...
+  FunctorAppl ... => ...
+| StructDec {alist, matchToResult=ref matchToResult, ...} =>
+  let
+    val typeVarMap = TypeVarMap.defaultTypeVarMap(mkAddr, level)
+    val (coded, _(*debugEnv*)) = codeStrdecs(strName, alist, ...)
+    val loads = List.rev(List.foldl(fn (s, l) => codeLoadStrdecs(s, level) @ l)
+  in
+    {
+      code = typeVarMap.getCachedTypeValues typeVarMap @ coded,
+      load = applyMatchActions (mkTuple loads, matchToResult, ...)
+    }
+  end
 ```
 codeBinding and codetree is defined in codetree.
+Next step, read codeStrdecs, codeLoadStrdecs, and applyMatchActions.
+codeStrdecs for CoreLang will call gencode in ParseTree/CODEGEN_PARSETREE.sml.
+Why is this function define in ParseTree folder? Whatever, bunch of codeXXX is
+in CODEGEN_PARSETREE.sml.
 
 # The big picture
 
@@ -377,6 +393,15 @@ A:<br/>
 
 Q: How does polyml do pretty-print?<br/>
 A: i.e, codetree's pretty printing is done in BaseCodeTree.sml.
+
+Q: Is there any way to iter over a tuple?
+A: Maybe you should instead use list if you have such need.
+
+Q: It's said that SML's polymorphic only applies to value, but not function etc.
+Type inference has some restrictions. why? And it's said that it has some
+connection with ref type.
+A:
+
 
 # Doubts
 - functors definition:
