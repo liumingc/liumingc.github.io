@@ -29,4 +29,5 @@ the shadow variables, so the value-environment is not flat, it's level inside
 level, which makes addressing complicated and inefficient.
 So, if we are finding/updating variables so frequently, then we do a transform
 it into SSA once and for all, then all the steps after, will benifit from it by
-simplify addressing variables.
+simplifying addressing variables.
+And it can simplify liveness analys and register allocation.

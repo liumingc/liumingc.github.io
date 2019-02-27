@@ -89,11 +89,21 @@ there is a push back before. So we reset it, so we eat the symbol.<br/>
 Otherwise, we call `parseToken` to get a new sym from the token stream.
 
 # Parsing
+Some examples of parsetree:
+1. value binding
+```sml
+val x: int = 5;
+```
+is
+```
+ValBind ( dec=Constraint (value=x, given=int), exp=5 )
+```
+There is a constraint which normally will not display.
 
 # TypeChecking
 It seems that typecheck is done when parsing.<br/>
-It's hard to lookup the entry point of TYPE_TREE functor/structure, i only found
-some makeParseTypeXXX api being called in PARSE_DEC.<br/>
+It's hard to lookup the entry point of TYPE\_TREE functor/structure, i only found
+some makeParseTypeXXX api being called in PARSE\_DEC.<br/>
 
 The keyword `withtype` appears only in `datatype | abstype`, because in SML,
 datatype and type is used different.
@@ -443,5 +453,5 @@ type types =
 | EmptyType
 ```
 What is OverloadSet?
-There is not explicit syntax form. In INITIALISE_.ML, we found that operators
+There is not explicit syntax form. In INITIALISE\_.ML, we found that operators
 such as +, - are Overloaded. I think it's kind of polymorphic.

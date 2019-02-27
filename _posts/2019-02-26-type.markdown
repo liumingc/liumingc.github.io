@@ -38,15 +38,16 @@ But we are moving a little too fast. Let's summarize it here:
         then we get an equation 'a = 'b
   - typeof(ifexp ...) etc
 3. solve the equations(how?)
+
 If there is a type equation, then we can propogate type to other variables. It
 should go one way, otherwise we are trampling and will not come to an end. The
-copy rules is as follows:
-1. copy from concrete type to type variables
+copy rules is as follow:
+1. copy from concrete type to type variables<br/>
   replace 'a with int/bool
-2. copy from funtype to type variables
+2. copy from funtype to type variables<br/>
   replace 'a with ('b -> 'c)
-3. reduce type variables, which means
+3. reduce type variables, which means<br/>
   if 'a = 'b
-    then consistently replace 'b with 'a.
+    then consistently replace 'b with 'a.<br/>
 Hopefully by these rules, we can inference some types out of expressions.
   
