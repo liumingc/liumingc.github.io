@@ -96,9 +96,33 @@ val x: int = 5;
 ```
 is
 ```
-ValBind ( dec=Constraint (value=x, given=int), exp=5 )
+ValBind ( dec=Constraint (value=Ident(x), given=int), exp=5 )
 ```
-There is a constraint which normally will not display.
+There is a constraint which normally will not display. And given is of type
+typeParsetree.
+In TYPE\_TREE.ML, we found the definition of typeParsetree:
+```sml
+datatype typeParsetree =
+  ParseTypeConstruction of
+    { name: string, args: typeParsetree list, ... }
+| ParseTypeFunction of
+    { argType: typeParsetree, resultType: typeParsetree, ... }
+| ParseTypeProduct of
+    { fields: typeParsetree list, ... }
+| ParseTypeLabelled of
+  { fields: (string * typeParsetree) list, frozen: bool, ... }
+| ParseTypeId of { types: typeVarFrom, ... }
+| ParseTypeBad (* Place holder for errors. *)
+```
+where `typeVarForm` is defined in STRUCT\_VALS.ML as follow:
+```sml
+type typeVarForm =
+  {
+    value: types ref,
+    encoding: Word.word
+  }
+```
+When pretty print typeParsetree, it's transformed into `types` type.
 
 # TypeChecking
 It seems that typecheck is done when parsing.<br/>
@@ -430,7 +454,7 @@ Whye result's type is signatures, but not structVals?
 
 - types definite
 ```sml
-type types =
+datatype types =
   TypeVar of typeVarForm
 | TypeConstruction of
   {
@@ -451,6 +475,12 @@ type types =
   }
 | BadTypes
 | EmptyType
+
+type labelledRec =
+  {
+      recList: {name: string, typeof: types } list,
+      fullList: labelFieldList
+  }
 ```
 What is OverloadSet?
 There is not explicit syntax form. In INITIALISE\_.ML, we found that operators
