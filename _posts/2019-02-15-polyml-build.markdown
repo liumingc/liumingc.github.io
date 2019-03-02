@@ -141,7 +141,7 @@ datatype valueMatching =
 and ...
 withtype structureMatch = (int * valueMatching) list
 ```
-STRUCTURES_.ML depends on STRUCT_VALS.ML, so you may find some definition in the
+STRUCTURES\_.ML depends on STRUCT\_VALS.ML, so you may find some definition in the
 latter file. In Overview.html, STRUCTVALSIG.sml appears before lexing/parsing.
 
 ## Structure/Signature/Functor, typing
@@ -149,7 +149,7 @@ functor/signature can only appear in prog(aka top dec).
 While structure can appear in dec or sig-spec.
 
 ### Sharing
-Sharing is tricky. In STURCUTRES_.ML
+Sharing is tricky. In STURCUTRES\_.ML
 ```sml
 functor STRUCTURES_ (
 ...
@@ -190,7 +190,7 @@ In CodeTree/BaseCodeTreeSig.sml,
 ```sml
 datatype codetree =
   Newenv of codeBinding list * codetree
-| Constnt of macnineWord * Universal.universal list
+| Constnt of machineWord * Universal.universal list
 | Extract of loadForm
 | Indirect of {base: codetree, offset: int, indKind: indKind }
 | Eval of (* Evaluate a function with an argument list *)
@@ -212,7 +212,7 @@ datatype codetree =
 | TagTest of ...
 | LoadOperation of ...
 | StoreOperation of ...
-| BlockOperation of ...
+| BlockOperation of ... (* kind of memmove, memcmp *)
 | GetThreadId
 | AllocateWordMemory of {numWords: codetree, flags: codetree, initial: codetree}
 
@@ -222,7 +222,7 @@ and loadForm =
 | LoadClosure of int
 | LoadRecursive
 
-and lambdaForm =
+withtype lambdaForm =
 {
   body: codetree
   isInline: inlineStatus, (* modified by optimiser *)
@@ -234,14 +234,16 @@ and lambdaForm =
   recUse: codeUse list
 }
 ```
-From parsetree to codetree, some forms is gone, i.e,<br/>
+From parsetree to codetree, some forms is gone, i.e,
 ```
 Ident -> LoadForm
-structure/signature/functor -> ???
+structure -> tuple
+functor -> function
+signature -> ???
 Localdec (* local dec in dec and let dec in exp *) -> Newenv
+Applic -> Eval (* local fn is Extract, global fn is Constnt *)
 ```
-struct is repr as tuple.
-The code to handle structure is in STRUCTURES_.ML.
+The code to handle structure is in STRUCTURES\_.ML.
 In
 ```sml
 val (structCode, nLocals) = STRUCTURES.gencodeStructs (parseTree, lex)
@@ -285,9 +287,32 @@ fun structureCode (str, strName, debugEnv, mkAddr, level):
 ```
 codeBinding and codetree is defined in codetree.
 Next step, read codeStrdecs, codeLoadStrdecs, and applyMatchActions.
-codeStrdecs for CoreLang will call gencode in ParseTree/CODEGEN_PARSETREE.sml.
+codeStrdecs for CoreLang will call gencode in ParseTree/CODEGEN\_PARSETREE.sml.
 Why is this function define in ParseTree folder? Whatever, bunch of codeXXX is
-in CODEGEN_PARSETREE.sml.
+in CODEGEN\_PARSETREE.sml.
+
+In CODEGEN\_PARSETREE.sml, `fun name (args, ...) = ...` is translated to `fn
+(args, ...) => ... `, the function name is gone, and the type is FunDeclaration
+to Fn.
+
+In code generating phase, if we encounter a function, or a case-of expression,
+then we will meet match compiler, whose code is in
+ParseTree/MATCH\_COMPILER.sml, of about 1000+ lines of code.
+
+### pattern-match
+```sml
+fun codeMatchPatterns(alt, arg, isHandlerMatch, lineNo, codePatternExpr, ctxt) =
+let
+  val nPats = length alt
+  val andortree = buildTree(alt, ctxt)
+  val patternCode as {leafSet, ...} = buildPatternCode(andortree,n Pats, naive)
+  fun firePatt 0 = raiseMatchException lineNo
+  |   firePatt pattChosn = codePatternExpr (pattChosn - 1)
+in
+  (codeGenerateMatch(patternCode, arg, firePatt, ctxt), exhaustive)
+end
+```
+
 
 # The big picture
 
@@ -297,9 +322,9 @@ The overview doc says, there are 4 major passes:
 - code-generation
 - optimise & transform to machine code
 
-In STRUCTURES_.ML, you will see there is some comment like `Code-generation
+In STRUCTURES\_.ML, you will see there is some comment like `Code-generation
 phase`, `Second pass`. So this is the clue to follow and findout TypeChecking.
-Or, by reading COMPILER_BODY.ML, the flow is as follow:
+Or, by reading COMPILER\_BODY.ML, the flow is as follow:
 ```sml
   val parseTree: STRUCTURES.program =
       PARSEDEC.parseDec (...)
@@ -435,6 +460,10 @@ Q: It's said that SML's polymorphic only applies to value, but not function etc.
 Type inference has some restrictions. why? And it's said that it has some
 connection with ref type.
 A:
+
+Q: I want to add some printting in ParseTree/CODEGEN\_PARSETREE.sml, but it will
+raise Io exception. Why is that, and how can i add debug printting stmts?
+A: 
 
 
 # Doubts
