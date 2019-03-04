@@ -299,6 +299,7 @@ In code generating phase, if we encounter a function, or a case-of expression,
 then we will meet match compiler, whose code is in
 ParseTree/MATCH\_COMPILER.sml, of about 1000+ lines of code.
 
+
 ### pattern-match
 ```sml
 fun codeMatchPatterns(alt, arg, isHandlerMatch, lineNo, codePatternExpr, ctxt) =
@@ -312,6 +313,72 @@ in
   (codeGenerateMatch(patternCode, arg, firePatt, ctxt), exhaustive)
 end
 ```
+
+### code optimising
+In CodeTree/CODETREE.ML
+```sml
+fun genCode(pt: codetree, debugSwitches, numLocals) =
+let
+  fun codeAndPrint(code, nLocal) =
+  let
+    val () = compilerOut (BASECODETREE.pretty code)
+  in
+    BACKEND.codeGenerate(code, nLocal, debugSwitches)
+  end
+
+  (* optimising *)
+  val (numLocals=localCount, general=gen, bindings=decs, special=sepc} =
+    OPTIMISER.codetreeOptimiser(pt, debugSwitches, numLocals)
+in
+  (* spec is special, it comes after optimising *)
+  case simplifySpec spec of
+    EnvSpecNone =>
+    let
+      val (code, props) = codeAndPrint (mkEnv(decs, gen), localCount)
+    in
+      fun () => Constnt(code (), props)
+    end
+  | simpleSpec =>
+    let
+      (* ... *)
+    in
+      fun () => Constnt(generalVal, setInline(mapSpec simpleSpec) generalProps)
+    end
+end
+
+```
+So, the key function here is `OPTIMISER.codetreeOptimiser` and
+`BACKEND.codeGenerate`. (What is an envSpecial? Come back later)
+
+Now let's read CODETREE\_OPTIMISER.sml:
+
+### Some examples
+ref val
+```sml
+val x = ref 5;
+let
+  val Local0 =
+    app.(
+      TUPLE(fn( Arg0 [] ) LIT1,
+            fn( Arg0 [] ) builtin.AllocateWordMemory (LIT1, LIT40, Arg0),
+            fn( Arg0 [] ) LoadMLWord [Arg0, LIT0, 0]) [1]
+        )
+    LIT5;
+  val Local1 = Local0;
+  val Local2 = Local1;
+in
+  TUPLE(Local2)
+end
+```
+It seems that the origin output has one extra closing parens. The bug resides in
+prettyBuiltin
+
+```sml
+datatype vari = A of int | B | C of string
+```
+I got code explosion here. poly will generate some functions, A, B, C the
+tester, with TestTag opcode. And defines some helper functions like eq-vari,
+print-vari.
 
 
 # The big picture
@@ -464,6 +531,14 @@ A:
 Q: I want to add some printting in ParseTree/CODEGEN\_PARSETREE.sml, but it will
 raise Io exception. Why is that, and how can i add debug printting stmts?
 A: 
+
+Q: How to include library path?
+A: In polyml, it seems you can only use file to include library.
+
+
+Q: What is SetContainer in codetree? When does it introduce to world?
+A: 
+
 
 
 # Doubts
