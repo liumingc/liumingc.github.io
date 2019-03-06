@@ -269,6 +269,7 @@ function name can't grep defn, because the name is composed, i.e:
   )
 ```
 
+
 ```sml
 fun structureCode (str, strName, debugEnv, mkAddr, level):
   { code: codeBinding list, load: codetree } = ...
@@ -313,6 +314,26 @@ in
   (codeGenerateMatch(patternCode, arg, firePatt, ctxt), exhaustive)
 end
 ```
+
+```sml
+datatype envGeneral =
+  EnvGenLoad of loadForm
+| EnvGenConst of machineWOrd * Universal.universal list
+and envSpecial =
+  EnvSpecNone
+| EnvSpecTuple of int * (int -> envGeneral * envSpecial)
+| EnvSpecInlineFunction of lambdaForm * (int -> envGeneral * envSpecial)
+| EnvSpecUnary of Builtins.unaryOps * codetree
+| EnvSpecBinary of Builtins.binaryOps * codetree * codetree
+```
+These datatypes are hard to understand.
+```
+Env : symbol -> 'a * 'b
+where
+  'a is load | constant
+  'b is tuple | inlinedFunction
+```
+Env is `symbol -> 'a * 'b`, where `'a` is `load | constant` and
 
 ### code optimising
 In CodeTree/CODETREE.ML
@@ -537,8 +558,8 @@ A: In polyml, it seems you can only use file to include library.
 
 
 Q: What is SetContainer in codetree? When does it introduce to world?
-A: 
-
+A: SetContainer is used for functions that return tuples. It's introduce in
+parsetree codegeneration.
 
 
 # Doubts
