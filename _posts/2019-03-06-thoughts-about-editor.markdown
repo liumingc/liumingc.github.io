@@ -30,3 +30,44 @@ to conflict, there should be a nice way to manager this.
 Maybe vim + vimL/python is really a good choice.
 
 What kind of plugins do you wanna write then?
+
+# Syntax highlight
+08/03/19 00:57
+
+Tonight, i try to figure out sml's sytanx highlight in VSCode. But it's a little
+painful. It works by re matching, you can do pretty work if you dont really
+parsing the code. Some bad examples:
+```sml
+functor Test(
+  structure A : SigA
+  structure B : SigB
+  sharing A.Sharing = B.Sharing
+  val mapL : ('a -> 'b) -> 'a list -> 'b list
+) : sig end =
+struct
+end
+```
+When defining `funbind` in the syntax file, the begin is `functor|and`, very
+simple, but it's hard to define the end part. And in the real word, `sharing`,
+and `struct ... end` does highlight, which is bad. You can get it work even by
+simply re matching! After so hard working, it just show up badly. So
+dissapointed.
+
+Maybe vim is simpler here? Not syntax highlight, but keyword highlight. Simpler
+sometimes is better.
+
+A note about the re,
+```
+input: <title>xyz</title>
+re: (?=><title>)(.*)(?=</title>)
+match \1: xyz
+```
+The `(? ...)` form is the group but dont capture re. 
+
+# Source code navigate helper
+- jump to definition
+- jump to declare
+- jump back
+- skip function
+- skip block
+

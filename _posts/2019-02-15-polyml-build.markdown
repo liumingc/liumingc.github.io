@@ -480,7 +480,7 @@ end
 
 
 # Reading progress
-17/2/2018
+17/2/2019
 
 I have read `PARSE_DEC.ML`, mark it. I will come back to figure out some<br/>
 details. The structure: <br/>
@@ -503,7 +503,7 @@ ml_bind
       StructVals
 ```
 
-19/2/2018
+19/2/2019
 
 The reading progress is slowing down. That's OK, i think. Besides reading
 the code, i'm also reading some books(i.e "Engineering a compiler"). And in the
@@ -512,6 +512,10 @@ even slow down more. So take it easy! After all, reading is not everything. Even
 if i've done reading all the source code, that won't mean that i'm in a new
   stage. I still have to write many code to learn how to program, how to write a
   compiler.
+
+07/03/2018
+
+The extendedBasicBlock and register allocation stuff is in CodeTree/X86Code.
 
 # Q&A
 Q: How to print pass info, how to print parsetree after pass etc?<br/>
