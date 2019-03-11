@@ -71,3 +71,7 @@ The `(? ...)` form is the group but dont capture re.
 - skip function
 - skip block
 
+# Folding
+Folding can be done by syntax, or by indentation, or by special markers. F# has
+markers, but SML is by indentation.
+

@@ -402,6 +402,56 @@ tester, with TestTag opcode. And defines some helper functions like eq-vari,
 print-vari.
 
 
+### Generate machine code (codetree -> machineword)
+BACKEND is CodetreeCodegenConstantFns. And CodetreeCodegenConstantFns is a
+strucuture produce by applying a functor:
+```sml
+structure CodetreeCodegenConstantFns =
+  CODETREE_CODEGEN_CONSTANT_FUNCTIONS (
+    strcture BASECODETREE = BaseCodeTree
+    and BACKEDN = CodetreeLambdaLift
+    and ...
+  )
+```
+
+### Gen code backend
+The following discussion assumes that the current dir is X86Code. Entry point is
+X86CodetreeToICode.ML, input is the bicLambdaForm, after lambda lift and static link,
+the output is X86ICode. The bic intermediate code is defined in ../BackendIntermeidateCode.sml:
+```sml
+datatype backendIC =
+  BICNewenv of bicCodebinding list * backendIC
+| BICConstnt of machineWord * universal list
+| ...
+
+type bicLambdaForm =
+{
+  body: backendIC,
+  name: string,
+  closure: bicLoadForm list,
+  localCount: int,
+  ...
+}
+```
+backendIC is like codetree, but adds some new forms:
+```sml
+datatype backendIC =
+| BICField of {base: backendIC, offset: int}
+| BICCase of
+  {
+      cases: backendIC option list
+      test: backendIC,
+      default: backendIC,
+      isExhaustive: bool,
+      firstIndex: word
+  }
+| BICLoadContainer of
+  {
+      base: backednIC,
+      offset: int
+  }
+```
+
 # The big picture
 
 The overview doc says, there are 4 major passes:
