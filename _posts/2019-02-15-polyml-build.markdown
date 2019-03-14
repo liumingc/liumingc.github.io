@@ -452,6 +452,22 @@ datatype backendIC =
   }
 ```
 
+To print icode vec, you have to call printICodeAbstrct(blockVec, stream), where
+blockVec is a vector of blocks, and a block is `(blkno, BasicBlock{block, flow,
+...}`, flow is
+```sml
+datatype flow =
+  Unconditional l
+| Conditional {cond, trueJ, falseJ, ccRef, ...}
+| ExitCode
+| SetHandler{handler, continue}
+| UncondtionHandle handler
+| ConditionHandle{handler, continue}
+```
+and block is a list of icode.
+If you see sth like `LIT <long word data>` in the output of icode, this is printed
+by Address.ML, function `stringOfWord`.
+
 # The big picture
 
 The overview doc says, there are 4 major passes:
@@ -575,6 +591,7 @@ After reading `PolyMLCompiler.html`, and i found there is some flags:<br/>
 val parsetree: bool ref
 val codetree: bool ref
 val codetreeAfterOpt: bool ref
+val icode: bool ref
 val assemblyCode: bool ref
 val pstackTrace: bool ref
 ```
