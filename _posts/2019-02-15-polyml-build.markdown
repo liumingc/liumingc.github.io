@@ -600,9 +600,15 @@ if i've done reading all the source code, that won't mean that i'm in a new
   stage. I still have to write many code to learn how to program, how to write a
   compiler.
 
-07/03/2018
+07/03/2019
 
 The extendedBasicBlock and register allocation stuff is in CodeTree/X86Code.
+
+17/03/2019
+Sometimes a file is too big(~1000 loc or more), i want to see a brief
+fun/type/value declaration, but the editor can't support it well enough. So i
+want to modify the code, remember the files along with those definition
+informations, and then offer a function to print the info out by file name.
 
 # Q&A
 Q: How to print pass info, how to print parsetree after pass etc?<br/>
