@@ -489,6 +489,10 @@ and block is a list of icode.
 If you see sth like `LIT <long word data>` in the output of icode, this is printed
 by Address.ML, function `stringOfWord`.
 
+### register allocation
+Allocate code is in X86AllocateRegisters.ML, if allocate failed, then need to
+spill, the spill code is in X86PushRegisters.ML.
+
 # The big picture
 
 The overview doc says, there are 4 major passes:
