@@ -27,7 +27,7 @@ be more bytes.
 | CSI n F | Cursor previous line |  |
 | CSI n G | Cursor horizontal absolute(default n=1, to column n) |
 | CSI n ; m H | Cursor position | Move the cursor to row n, column m |
-| CSI n J | Erase in display | n=0, clear to end; n=1, clear to beginning; n=2, clear entire screen |
+| CSI n J | Erase in display | n=0, clear to end;<br/> n=1, clear to beginning;<br/> n=2, clear entire screen |
 | CSI n K | Erase in line | |
 | CSI n S | Scroll up | |
 | CSI n T | Scroll down | |
@@ -69,4 +69,9 @@ Color table is
 | White | 7 |
 
 
-| 
+# Examples
+You can use an editor which supports entering special chars, or you can use
+`echo -e ` to output the control sequences. Examples:
+```sh
+echo -e "\033[1;31mhello\033[0m, world"
+```
