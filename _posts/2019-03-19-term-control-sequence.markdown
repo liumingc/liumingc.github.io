@@ -50,9 +50,9 @@ be more bytes.
 | 25 | Blink off |
 | 27 | Inverse off |
 | 30-37 | Set foreground color |
-| 38 | Set foreground color |
+| 38 | Set foreground color(256-color, or 24-bit color) |
 | 40-47 | Set background color |
-| 48 | Set background color |
+| 48 | Set background color(256-color, or 24-bit color) |
 
 Can specify multiple parameters, seperated by `;`, So you can use bold color,
 set fg/bg color like `CSI 1;31;45m`.

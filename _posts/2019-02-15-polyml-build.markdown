@@ -677,7 +677,7 @@ type functors =
     locations: locationProp list
   }
 ```
-Whye result's type is signatures, but not structVals?
+Why result's type is signatures, but not structVals?
 
 - types definite
 ```sml
@@ -712,3 +712,20 @@ type labelledRec =
 What is OverloadSet?
 There is not explicit syntax form. In INITIALISE\_.ML, we found that operators
 such as +, - are Overloaded. I think it's kind of polymorphic.
+
+- shadow structure/functor
+There is some code like
+```sml
+structure PolyML =
+struct
+  open PolyML
+  ...
+end
+```
+I think the origin PolyML is shadow to the outside world then, that's a little
+confusing, and it makes search for some definition hard. Because, when you see
+an identifier like `PolyML.compiler`, you may wonder which `PolyML`, the init
+one or the final one? Do you have to trace down to find out?
+__NOTE__: previously, i misunderstood `open` and `include`, i thought that open
+will not export the ids and types as member of current structure, but it does.
+`open` is for structure, while `include` is for signature, they are similar.
