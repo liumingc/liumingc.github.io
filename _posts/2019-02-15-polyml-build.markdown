@@ -493,6 +493,40 @@ by Address.ML, function `stringOfWord`.
 Allocate code is in X86AllocateRegisters.ML, if allocate failed, then need to
 spill, the spill code is in X86PushRegisters.ML.
 
+It seems that once if you spill a variable to stack, then every later reference will
+need a reload first (Reload to which register? In RISC, it seems like split live
+range, in CISC, sometimes you can direct access the memory, needn't reload it into a
+register to use it).
+For example, if r15 is going to be spilled, then
+```
+r15 = r14 + 8
+...
+r20 = r15 * 3
+r21 = r15 + 20
+```
+will be rewrite as
+```
+r15 = r14 + 8
+stack[16] = r15
+...
+r20 = stack[16] * 3
+r21 = stack[16] + 20
+```
+Or, if in RISC,
+```
+r15 = r14 + 8
+store r15, stack[16]
+...
+ld r20', stack[16]
+r20 = r20' * 3
+ld r21', stack[16]
+r21 = r21' + 20
+```
+Here we have two `ld r20', stack[16]`, it can be optimize and elimited, by using
+cache or other optimizing techniques.
+In X86PushRegisters.ML, it uses `pregMap` to remember r15 (to remember such
+info: is it in a real reg, or on the stack?)
+
 # The big picture
 
 The overview doc says, there are 4 major passes:
