@@ -1,0 +1,95 @@
+---
+layout: post
+title:  "Monad"
+date:   2019-04-09 22:26:00 +0800
+categories: jekyll update
+---
+
+Rencently I was learning haskell again!
+I think there are two difficult parts about haskell:
+- type class
+- monad
+Maybe there are some other hardcore stuff, but i'm not reading them. When come
+to monad, i think it's a way to abstract out some context info between two
+subsequent operation. For example, in state monad,
+```hs
+newtype State st a = State (st -> (st, a) )
+instance Monad (State st) where
+  return a = State $ \st -> (st, a)
+  State run >>= f = State run'
+    where run' st =
+      let (st', a) = run st
+          State run2 = f a
+      in
+          run2 st'
+```
+And, in application,
+```hs
+do
+  stmt1
+  stmt2
+```
+It's analog to
+```hs
+stmt1 >> stmt2
+```
+where `>>` is just a syntax sugar of `>>=`
+```hs
+stmt1 >> stmt2
+{-
+stmt1 >>= $ \st1 stmt2
+-}
+```
+Only the intermediate result st1 is ignore.
+
+Let's walk through an example to see how does monad hide some information.
+Here is some utilities to handle state monad:
+```hs
+putState newst = State $ \_ ->
+  (new, ())
+getState = State $ \st -> (st, st)
+```
+If you want a counter monad, and you want to hide the counter info, then here is
+an example:
+```hs
+do
+  st1 <- getState
+  putState (st1 + 1)
+  return st1
+```
+After desugar the above code, it become:
+```hs
+  State $ \_ -> (st1 + 1, ()) >>= \a ->
+  State $ \st2 -> (st2, st1)
+```
+Compare this with the instance definition, 
+```
+-- lhs is original code, rhs is expanded code
+let (st', a) = run st | let (st', a) = st1 + 1, ()
+```
+And
+```
+let State run2 = f a  | let State run2 = (\a -> State $ \st2 -> (st2, st1) ) ()
+in run2 st'           | in run2 st' -- st' is st1 + 1
+```
+I feel i'm not good at illustrating it now... maybe it's because i'm not quite
+understand moand T\_T. But it's nearly in the end now, in the above code, 
+`run2` is `$ \st2 -> (st2, st1)`. And it the last application, the param is
+just `st1 + 1`, so it will really return `(st1 + 1, st1)`.
+
+The essence of the above code, however, is that every stmt in the `do ...`
+block, is a state, and the state is passed onto the subsequent state. And when
+the subsequent code try to `return` something, by eta reduction, it gets the
+argument passed implicitly by the previous stmt. The special handling of
+context, lies inside the definition of `>>=`, the latter run function, sees the
+new state from the last stmt. I think i'm not talking it explictable, but i
+think i've get the idea.
+```hs
+  State run1 >>= f = State $ \st1 ->
+    let (st2, result1) = run1 st1
+        State run2 = f result1
+    in  run2 st2
+```
+The `run2` function's argument is `st2`, not `st1`, and this internal state, is
+not seen by monad user.
+Ok, i will refine this article to make it more readable later ...
