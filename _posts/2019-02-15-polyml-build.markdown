@@ -527,6 +527,55 @@ cache or other optimizing techniques.
 In X86PushRegisters.ML, it uses `pregMap` to remember r15 (to remember such
 info: is it in a real reg, or on the stack?)
 
+#### identify register references
+
+##### pass1: find decs/refs
+scanCode, handling one instruction
+```sml
+fun scanCode(instr, original as {code, decs, refs, loopRegs, ...}) =
+let
+  val { sources, dests, ... } = getInstructionState instr
+  val sourceRegNos = map regNo sources
+in
+  let
+    val () = List.app incrRef sourceRegNos
+  in
+    {
+      { code = instr :: code,
+        decs = union(listToSet destRegNos, decs),
+        refs = union(listToSet sourceRegNos, refs), ...
+    }
+  end
+end
+```
+blockScan, scans a block, aka a list of instructions, use depth first search to
+process successors first
+```sml
+fun blockScan blockNo =
+if has processed then ()
+else
+let
+  mark block as processed
+  val thisBlock = Vector.sub(blockVector, blockNo)
+  val successors = blockSuccors thisBlock
+  val _ = List.app blockScan successors (* depth first search, to update
+  refcount *)
+  fun scanCode(instr, original) = #= ref scanCode =#
+in
+  val { code, decs, refs, loopRegs, ... } =
+    List.foldr scanCode
+      { code=[], decs=emptySet, refs=emptySet, loopRegs=emptySet} block
+end
+```
+Then, update declare/import/resultCode/localLoopRegArray etc
+```
+declare = decs
+import := minus(refs, decs)
+```
+
+##### pass2:
+TODO
+
 # The big picture
 
 The overview doc says, there are 4 major passes:
