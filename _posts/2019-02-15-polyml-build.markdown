@@ -574,7 +574,14 @@ import := minus(refs, decs)
 ```
 
 ##### pass2:
-TODO
+pass1 is processing individual blocks, while pass2 is processing between blocks,
+so there are passThroughes/imports/exports registers.
+
+##### pass3:
+pass3 will changed some instruction, remove some elimitable instruction if the
+dest reg is not referenced afterwards. And it will set saveRegs for some
+instruction (for example, function call instruction, and allocate memory
+instruction).
 
 # The big picture
 
