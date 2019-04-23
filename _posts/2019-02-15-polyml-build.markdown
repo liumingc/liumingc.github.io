@@ -699,10 +699,26 @@ if i've done reading all the source code, that won't mean that i'm in a new
 The extendedBasicBlock and register allocation stuff is in CodeTree/X86Code.
 
 17/03/2019
+
 Sometimes a file is too big(~1000 loc or more), i want to see a brief
 fun/type/value declaration, but the editor can't support it well enough. So i
 want to modify the code, remember the files along with those definition
 informations, and then offer a function to print the info out by file name.
+
+23/04/2019
+
+I've been reading X86Code for quite a long time. When i try to rewrite some
+snippets in python, i found that python is usually more concise than sml. The
+cons of python is bad type inference/annotation, and lack pattern matching.
+I've read identified regsiter, and X86ICodeGetConflictSets.ML.
+What does GetConflictSets do? 
+- It reserve some specific register for some
+special instruction. For example, `BlockMove{srcAddr, destAddr, length, ...}`,
+need to reserve `esi` for `srcAddr`, `edi` for `destAddr`, and `ecx` for
+`length`. 
+- Some instruction's dest reg may conflict with its source registers, mark them
+  and add conflicts between them.
+
 
 # Q&A
 Q: How to print pass info, how to print parsetree after pass etc?<br/>
