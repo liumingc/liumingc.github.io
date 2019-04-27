@@ -166,7 +166,7 @@ STRUCTURES\_.ML depends on STRUCT\_VALS.ML, so you may find some definition in t
 latter file. In Overview.html, STRUCTVALSIG.sml appears before lexing/parsing.
 
 ## Structure/Signature/Functor, typing
-functor/signature can only appear in prog(aka top dec).
+functor/signature can only appear in prog(a.k.a top dec).
 While structure can appear in dec or sig-spec.
 
 ### Sharing
@@ -204,6 +204,24 @@ sharing A = B
 sharing B = C
 doesn't mean sharing A = C.
 And sharing struct is a composed form, base on type sharing.
+
+### type constraint in struct/sig
+
+```sml
+signature T =
+sig
+  type t
+end
+
+structure S: T =
+struct
+  datatype t = N | S of int
+end
+```
+
+In structure `datatype t = ...` can fit the spec `type t` in signature. If you
+write `type t` instead of `datatype t = ...` in signature, then you are hiding
+the constructors.
 
 # Code generation
 ## codetree
@@ -828,10 +846,14 @@ struct
   ...
 end
 ```
-I think the origin PolyML is shadow to the outside world then, that's a little
-confusing, and it makes search for some definition hard. Because, when you see
+I think the origin `PolyML` module is shadowed afterwards, that's a little
+confusing, and it makes searching for definition harder. Because, when you see
 an identifier like `PolyML.compiler`, you may wonder which `PolyML`, the init
 one or the final one? Do you have to trace down to find out?
+I read the blog [Go & Versioning, Part 9](https://research.swtch.com/vgo-eng),
+they use url in importing, for example, `import "github.com/pborman/uuid"`, this
+can resolve the `which package` problem.
 __NOTE__: previously, i misunderstood `open` and `include`, i thought that open
 will not export the ids and types as member of current structure, but it does.
 `open` is for structure, while `include` is for signature, they are similar.
+
