@@ -4,7 +4,15 @@ title:  "Poly build instructions"
 date:   2019-02-15 01:37:50 +0800
 categories: jekyll update
 ---
-According to official site's instruction, you have to run<br/>
+
+## Update(2019/05/03)
+
+This post is updated incrementaly, and now it's in a messive state. I have to
+rewrite it later. For now, it's used to record some raw notes.
+
+## Build instruction
+
+According to official site's instruction, you have to run
 the following instructions:
 ```bash
 make
@@ -592,14 +600,69 @@ import := minus(refs, decs)
 ```
 
 ##### pass2:
+
 pass1 is processing individual blocks, while pass2 is processing between blocks,
 so there are passThroughes/imports/exports registers.
 
 ##### pass3:
+
 pass3 will changed some instruction, remove some elimitable instruction if the
-dest reg is not referenced afterwards. And it will set saveRegs for some
+dest reg is not referenced afterwards. And it will set the field `saveRegs` for some
 instruction (for example, function call instruction, and allocate memory
 instruction).
+
+#### X86AllocateRegister
+
+The algorithm:
+1. Use an array to record the allocate result, so if one is allocated, then just
+   use it.
+2. If there is a preferred register, then try it(if failed, return fail, and
+   append the conflict registers to spill). In some instruction, preferred reg
+   is the realReg in instruction(Still very confusing).
+
+3. Try real hint register.
+   For example, for BlockMove
+   instruction, esi, edi, ecx are hint registers
+
+```
+v1_reg <- esi
+v2_reg <- edi
+len_reg <- ecx
+```
+
+	There is a big switch to handle hint register for spec
+	instructions.
+
+4. Try if there is a "friend"(???).
+5. Try general registers.
+
+### ICode translate to X86Code
+
+`fun moveMultipleValues` in line 291 seems to be an important function.
+`val newCode = codeCreate (functionName, profileObject, debugSwitches)` in line
+1654.
+codeCreate is defined in X86OUTPUTCODE.ML. And there is a X86FOREIGNCALL.sml.
+
+Note:
+- In polyml, the author likes to use array as a map(index as key). It works
+though.
+- Some indent didnt feel right, e.g
+
+```sml
+fun foo [] = ...
+|   foo (x::rest) = ...
+```
+
+I prefer it to be
+
+```sml
+fun foo [] = ...
+  | foo (x::rest) = ...
+```
+
+So that vim can do the folding by indent better. (And better anylyze by human
+eys.) The case's indent is similar.
+In if-then-else, with let-in statement, should we ident the let-in part?
 
 # The big picture
 
