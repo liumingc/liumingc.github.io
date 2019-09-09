@@ -29,6 +29,18 @@ exp ::=
 
 Note: we use quote to quote the literal keyword here. (or we can use bracket to quote the expression, but since literal keyword appears less often, so we should handle the less often part).
 
+A note, in the full grammar of defn, appears the beloved `if`, `case` exp:
+
+```
+exp +=
+	'if' exp1 'then' exp2 'else' exp3
+	'case' exp 'of' match
+	'while' exp1 'do' exp2
+	exp1 'andalso' exp2
+	exp1 'orelse' exp2
+```
+
+
 Now, let's see the `atexp`
 
 ```
@@ -38,4 +50,46 @@ atexp ::=
 	'{' exprow '}'	(* record *)
 	'let' dec 'in' exp 'end'
 	'(' exp ')'
+```
+
+And, match is as follow:
+
+```
+match ::=
+	mrule < '|' match >
+
+mrule ::=
+	pat '=>' exp
+```
+
+And declaration:
+
+```
+dec ::=
+	'val' valbind
+	'type' typebind
+	'datatype' datbind
+	'abstype' datbind 'with' dec 'end'
+	'exception' exbind
+	'local' dec1 'in' dec2 'end'
+	'open' longstrid1 ... longstridn
+	dec1 <';'> dec2
+	'infix' | 'infixr' <d> vid1 ... vidn
+	'nofix' vid
+
+typbind ::=
+	tyvarseq tycon '=' ty <'and' typbind>
+
+ty ::=
+	tyvar
+	'{' <tyrow> '}'
+	tyseq longtycon	(* type construction, tyseq is empty, or x1 or (x1, x2) etc *)
+	ty1 '*' ... '*' tyn	(* tuple *)
+	ty -> ty'	(* function type *)
+	'(' ty ')'
+tyrow ::=
+	lab ':' ty <',' tyrow>
+	
+datbind ::=
+	tyvarseq tycon '=' conbind < 'and' datbind >
 ```
