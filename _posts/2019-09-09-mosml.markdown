@@ -1,0 +1,41 @@
+# mosml
+
+## compiler
+
+It contains three parts,
+
+- mosmlcmp	compiler
+- mosmllnk	linker
+- mosmltop	toplevel interpreter
+
+These are bytecode objects, so you need to use `camlrunm` to run them.
+
+The names follow the defn. And `M` is short for `module`.
+
+## syntax
+
+### Core
+
+```
+exp ::=
+	atexp
+	exp atexp	(* application *)
+	exp1 vid exp2	(* infix application *)
+	exp ':' type
+	exp 'handle' match
+	'raise' exp
+	'fn' match
+```
+
+Note: we use quote to quote the literal keyword here. (or we can use bracket to quote the expression, but since literal keyword appears less often, so we should handle the less often part).
+
+Now, let's see the `atexp`
+
+```
+atexp ::=
+	scon		(* special constant, i.e, integer, string, char, word *)
+	<'op'> longvid	(* op is optional *)
+	'{' exprow '}'	(* record *)
+	'let' dec 'in' exp 'end'
+	'(' exp ')'
+```
