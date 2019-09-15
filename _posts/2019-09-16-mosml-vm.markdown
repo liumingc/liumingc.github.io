@@ -1,0 +1,117 @@
+# Mosml's vm
+
+*WIP*
+
+## Interpreter
+
+When building,
+
+```sh
+gcc -c -Dunix -O3 -DTHREADED -fPIC -o interp.o interp.c
+```
+So, add the following code to `.vscode/settings.json`
+
+```json
+{
+    "C_Cpp.default.defines": [
+        "unix",
+        "THREADED"
+    ]
+}
+```
+
+## instructions
+
+### const manager
+
+- const
+- constbyte
+- constshort
+
+### switch & branch
+
+- switch
+- branch
+- branchif
+- branchifnot
+- branchifeq
+- ...
+
+
+### C call
+
+- c_call1
+- c_call2
+- ...
+- c_calln
+
+### block related
+
+What is a block?
+
+- makeblock
+- makeblock1
+- makeblock2
+- ...
+- tagof
+- access
+- acc0
+- acc1
+- ...
+
+### stack operation
+
+- swap
+Swap accu & top stack element's value.
+- push / pushacc0
+
+```c
+	*--sp = accu;Next;
+```
+
+- push1
+
+```c
+	*--sp = accu;
+	accu = sp[0]; Next;
+```
+
+- acc0
+
+```c
+	accu = sp[0]; Next;
+```
+
+- acc1
+
+```c
+	accu = sp[1]; Next;
+```
+
+- access
+
+```c
+	accu = sp[u16pc]; pc += SHORT; Next;
+```
+
+Note: this means that the extra argument is in the code stream.
+So, take the short arg from code stream, step pc advanced it.
+
+- pop
+
+```c
+	sp += u16pc; pc += SHORT; Next;
+```
+
+- assign
+
+```c
+	sp[u16pc] = accu; pc += SHORT;
+	accu = Val_unit;
+```
+
+
+### Access heap-allocated environment
+
+Line 335 of interp.c
+
