@@ -47,7 +47,7 @@ So, add the following code to `.vscode/settings.json`
 
 ### block related
 
-What is a block?
+What is a block? A tuple is a block.
 
 - makeblock
 - makeblock1
@@ -62,7 +62,9 @@ What is a block?
 ### stack operation
 
 - swap
+
 Swap accu & top stack element's value.
+
 - push / pushacc0
 
 ```c
@@ -115,3 +117,33 @@ So, take the short arg from code stream, step pc advanced it.
 
 Line 335 of interp.c
 
+### Function call/application
+
+Line 712 of interp.c
+
+```c
+	Instruct(APPLY): {
+		extra_args = u8pc - 1;
+		goto apply;
+	}
+	Instruct(APPLY2): {
+		value arg1 = sp[0];
+		value arg2 = sp[1];
+		sp -= 3;
+		sp[0] = arg1;
+		sp[1] = arg2;
+		sp[2] = (value)pc;
+		sp[3] = env;
+		sp[4] = Val_long(extra_args);
+		extra_args = 1;
+		goto apply;
+	}
+	// ...
+apply:
+	pc = Code_val(accu);
+	env = accu;
+	// check stack and signals
+	Next;
+
+```
+ 
