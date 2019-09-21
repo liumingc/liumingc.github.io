@@ -1,0 +1,14 @@
+I was reading xavier's [zam vm paper](https://xavierleroy.org/talks/zam-kazam05.pdf), i found the transition description is clean, so i'll follow similar notation.
+
+## stack related instructions
+
+| code        | env  | stack     | regs   | code' | env' | stack'    | regs'   |
+| ----------- | ---- | --------- | ------ | ----- | ---- | --------- | ------- |
+| push;c      | e    | s         | accu=a | c     | e    | a.s       |         |
+| push1;c     | e    | v.s       | accu=a | c     | e    | a.v.s     | accu=v  |
+| push2;c     | e    | v1.v2.s   | accu=a | c     | e    | a.v1.v2.s | accu=v2 |
+| access(n);c | e    | v1...vn.s | accu=a | c     | e    | v1...vn.s | accu=vn |
+| pop(n);c    | e    | v1...vn.s | accu=a | c     | e    | s         |         |
+| assign(n);c | e    | v1...vn.s | accu=a | c     | e    | v1...a.s  |         |
+
+
