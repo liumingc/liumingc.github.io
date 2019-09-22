@@ -69,21 +69,58 @@ Let's assume that `NARKGS=k`, `SLOTSIZE=q`,
 
 | code            | stack                                    | env  | accu | extra_args |
 | --------------- | ---------------------------------------- | ---- | ---- | ---------- |
-| appterm; p; q;c | a<sub>1</sub>...a<sub>k</sub>...a<sub>q</sub>.s | e    | a    | n          |
+| appterm; k; q;c | a<sub>1</sub>...a<sub>k</sub>...a<sub>q</sub>.s | e    | a    | n          |
 | c               | a<sub>1</sub>...a<sub>k</sub>.s          | e    | a    | n+k        |
 
 OK, the above transition is not done, because there is a `goto appterm` in the source code,
 
 what `appterm:` does is as follow:
 
-| code | stack | env  | accu | extra_args |
-| ---- | ----- | ---- | ---- | ---------- |
-| c    | s     |      | a    | n          |
-| a(0) | s     | a    | a    | n          |
+| code       | stack | env  | accu | extra_args |
+| ---------- | ----- | ---- | ---- | ---------- |
+| appterm; c | s     | e    | a    | n          |
+| a(0)       | s     | a    | a    | n          |
 
-There is no `p.c.n` sequence on the stack, so that's something like tailcall, i think.
+There is no `pc.e.n` sequence on the stack, so that's something like tailcall, i think.
 
 `APPTERM<n>`
 
 OK, the `NARGS=k` is removed from the codestream, `NARGS=<n>` now. So that's what `APPTERM<n>` does.
+
+`RETURN<k>`
+
+| code      | stack                                    | env  | accu | extra_args |           |
+| --------- | ---------------------------------------- | ---- | ---- | ---------- | --------- |
+| return1;c | v<sub>1</sub>...v<sub>k</sub>.pc.e'.n'.s | e    | a    | n          |           |
+| a(0)      | s                                        | a    | a    | n-1        | if n > 0  |
+| pc        | s                                        | e'   | a    | n'         | if n == 0 |
+
+If the instruction is `RETURN`, not `RETURN1` or `RETURN2` etc, then the k is taken from the code stream, a 2-byte k.
+
+`RESTART`
+
+| code      | stack                           | env                                  | accu | extra_args |
+| --------- | ------------------------------- | ------------------------------------ | ---- | ---------- |
+| restart;c | s                               | v.e'.a<sub>1</sub>...a<sub>k</sub>.e | a    | n          |
+| c         | a<sub>1</sub>...a<sub>k</sub>.s | e'                                   | a    | n+k        |
+
+k is `Wosize_val(env) - 2`, seems wired, defer to figure it out later.
+
+`GRAB`
+
+| code       | stack                                    | env  | accu      | extra_args |           |
+| ---------- | ---------------------------------------- | ---- | --------- | ---------- | --------- |
+| grab; k; c | s as a<sub>0</sub>a<sub>1</sub>...a<sub>n</sub>.pc.e'.n'.s' | e    | a         | n          |           |
+| c          | s                                        | e    | a         | n-k        | if n >= k |
+| pc         | s'                                       | e'   | Clos(...) | n'         | if m < k  |
+
+Note: k is the required argument number. if `n < k`, then we need to build a closure, `Clos(n+1, pc=[restart; grab; k; c])`.
+
+There is always a `RESTART` before `GRAB; k`. So the Clos's pc just pointed to `curr_pc - 3`.
+
+`CLOSURE`
+
+`CLOSREC`
+
+
 
