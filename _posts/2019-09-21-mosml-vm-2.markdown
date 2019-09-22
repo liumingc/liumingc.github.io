@@ -44,8 +44,46 @@ There is a group of `APPLY` instructions.
 
 `APPLY<n>`
 
-| code        | stack                         | env  | accu | extra_args |
-| ----------- | ----------------------------- | ---- | ---- | ---------- |
-| `apply<n>`; c | a<sub>1</sub>.a<sub>2</sub>...a<sub>n</sub>.s         | e    | a    | n          |
-| a(0)        | a<sub>1</sub>.a<sub>2</sub>...a<sub>n</sub>.pc.e.n.s | a    | a    | `<n>-1`    |
+| code          | stack                                    | env  | accu | extra_args |
+| ------------- | ---------------------------------------- | ---- | ---- | ---------- |
+| `apply<n>`; c | a<sub>1</sub>.a<sub>2</sub>...a<sub>n</sub>.s | e    | a    | n          |
+| a(0)          | a<sub>1</sub>.a<sub>2</sub>...a<sub>n</sub>.pc.e.n.s | a    | a    | `<n>-1`    |
+
+`<n>` is 1 .. 4.
+
+`APPTERM`
+
+I don't know when will generate the `APPTERM` instruction.
+
+Whatever, here is the transition.
+
+Code sequence:
+
+```
+APPTERM; NARGS; SLOTSIZE; C
+```
+
+`NARGS` is one byte constant, `SLOTSIZE` is 2-byte constant.
+
+Let's assume that `NARKGS=k`, `SLOTSIZE=q`,
+
+| code            | stack                                    | env  | accu | extra_args |
+| --------------- | ---------------------------------------- | ---- | ---- | ---------- |
+| appterm; p; q;c | a<sub>1</sub>...a<sub>k</sub>...a<sub>q</sub>.s | e    | a    | n          |
+| c               | a<sub>1</sub>...a<sub>k</sub>.s          | e    | a    | n+k        |
+
+OK, the above transition is not done, because there is a `goto appterm` in the source code,
+
+what `appterm:` does is as follow:
+
+| code | stack | env  | accu | extra_args |
+| ---- | ----- | ---- | ---- | ---------- |
+| c    | s     |      | a    | n          |
+| a(0) | s     | a    | a    | n          |
+
+There is no `p.c.n` sequence on the stack, so that's something like tailcall, i think.
+
+`APPTERM<n>`
+
+OK, the `NARGS=k` is removed from the codestream, `NARGS=<n>` now. So that's what `APPTERM<n>` does.
 
