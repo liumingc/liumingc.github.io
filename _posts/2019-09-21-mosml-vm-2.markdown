@@ -2,13 +2,50 @@ I was reading xavier's [zam vm paper](https://xavierleroy.org/talks/zam-kazam05.
 
 ## stack related instructions
 
-| code        | env  | stack     | regs   | code' | env' | stack'    | regs'   |
-| ----------- | ---- | --------- | ------ | ----- | ---- | --------- | ------- |
-| push;c      | e    | s         | accu=a | c     | e    | a.s       |         |
-| push1;c     | e    | v.s       | accu=a | c     | e    | a.v.s     | accu=v  |
-| push2;c     | e    | v1.v2.s   | accu=a | c     | e    | a.v1.v2.s | accu=v2 |
-| access(n);c | e    | v1...vn.s | accu=a | c     | e    | v1...vn.s | accu=vn |
-| pop(n);c    | e    | v1...vn.s | accu=a | c     | e    | s         |         |
-| assign(n);c | e    | v1...vn.s | accu=a | c     | e    | v1...a.s  |         |
+| code        | env  | stack     | regs   | code' | env' | stack'    | regs'     |
+| ----------- | ---- | --------- | ------ | ----- | ---- | --------- | --------- |
+| push;c      | e    | s         | accu=a | c     | e    | a.s       |           |
+| push1;c     | e    | v.s       | accu=a | c     | e    | a.v.s     | accu=v    |
+| push2;c     | e    | v1.v2.s   | accu=a | c     | e    | a.v1.v2.s | accu=v2   |
+| access(n);c | e    | v1...vn.s | accu=a | c     | e    | v1...vn.s | accu=vn   |
+| pop(n);c    | e    | v1...vn.s | accu=a | c     | e    | s         |           |
+| assign(n);c | e    | v1...vn.s | accu=a | c     | e    | v1...a.s  | accu=UNIT |
 
+## env access
+
+| code            | env  | stack | regs   | code' | env' | stack' | regs'     |
+| --------------- | ---- | ----- | ------ | ----- | ---- | ------ | --------- |
+| pushenvacc(n);c | e    | s     | accu=a | c     | e    | a.s    | accu=e(n) |
+| envacc(n); c    | e    | s     | accu=a | c     | e    | s      | accu=e(n) |
+
+## function application
+
+Function application is much more complicated, it seems the previous way is not ok to present the transition. So, i decided to change the table structure,
+
+The first line is the old state, the next line is the next state
+
+`PUSH_RETADDR`
+
+| code           | stack    | env  | accu | extra_args |
+| -------------- | -------- | ---- | ---- | ---------- |
+| push_retaddr;c | s        | e    | a    | n          |
+| c              | pc.e.n.s | e    | a    | n          |
+
+`APPLY`
+
+| code        | stack | env  | accu | extra_args |
+| ----------- | ----- | ---- | ---- | ---------- |
+| apply(n');c | s     | e    | a    | n          |
+| a(0)        | s     | a    | a    | n'         |
+
+PS: will check stack, so maybe there is a realloc of stack when `APPLY`.
+
+There is a group of `APPLY` instructions.
+
+`APPLY<n>`
+
+| code        | stack                         | env  | accu | extra_args |
+| ----------- | ----------------------------- | ---- | ---- | ---------- |
+| `apply<n>`; c | $a_1$.$a_2$...$a_n$.s         | e    | a    | n          |
+| a(0)        | $a_1$.$a_2$....$a_n$.pc.e.n.s | a    | a    | `<n>-1`    |
 
