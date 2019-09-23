@@ -2,14 +2,14 @@ I was reading xavier's [zam vm paper](https://xavierleroy.org/talks/zam-kazam05.
 
 ## stack related instructions
 
-| code        | env  | stack     | regs   | code' | env' | stack'    | regs'     |
-| ----------- | ---- | --------- | ------ | ----- | ---- | --------- | --------- |
-| push;c      | e    | s         | accu=a | c     | e    | a.s       |           |
-| push1;c     | e    | v.s       | accu=a | c     | e    | a.v.s     | accu=v    |
-| push2;c     | e    | v1.v2.s   | accu=a | c     | e    | a.v1.v2.s | accu=v2   |
-| access(n);c | e    | v1...vn.s | accu=a | c     | e    | v1...vn.s | accu=vn   |
-| pop(n);c    | e    | v1...vn.s | accu=a | c     | e    | s         |           |
-| assign(n);c | e    | v1...vn.s | accu=a | c     | e    | v1...a.s  | accu=UNIT |
+| code        | env  | stack                           | regs   | code' | env' | stack'                          | regs'              |
+| ----------- | ---- | ------------------------------- | ------ | ----- | ---- | ------------------------------- | ------------------ |
+| push;c      | e    | s                               | accu=a | c     | e    | a.s                             |                    |
+| push1;c     | e    | v.s                             | accu=a | c     | e    | a.v.s                           | accu=v             |
+| push2;c     | e    | v<sub>1</sub>.v<sub>2</sub>.s   | accu=a | c     | e    | a.v<sub>1</sub>.v<sub>2</sub>.s | accu=v<sub>2</sub> |
+| access(n);c | e    | v<sub>1</sub>...v<sub>n</sub>.s | accu=a | c     | e    | v<sub>1</sub>...v<sub>n</sub>.s | accu=vn            |
+| pop(n);c    | e    | v<sub>1</sub>...v<sub>n</sub>   | accu=a | c     | e    | s                               |                    |
+| assign(n);c | e    | v<sub>1</sub>...v<sub>n</sub>   | accu=a | c     | e    | v1...a.s                        | accu=UNIT          |
 
 ## env access
 
@@ -24,14 +24,14 @@ Function application is much more complicated, it seems the previous way is not 
 
 The first line is the old state, the next line is the next state
 
-`PUSH_RETADDR`
+### `PUSH_RETADDR`
 
 | code           | stack    | env  | accu | extra_args |
 | -------------- | -------- | ---- | ---- | ---------- |
 | push_retaddr;c | s        | e    | a    | n          |
 | c              | pc.e.n.s | e    | a    | n          |
 
-`APPLY`
+### `APPLY`
 
 | code        | stack | env  | accu | extra_args |
 | ----------- | ----- | ---- | ---- | ---------- |
@@ -42,7 +42,7 @@ PS: will check stack, so maybe there is a realloc of stack when `APPLY`.
 
 There is a group of `APPLY` instructions.
 
-`APPLY<n>`
+### `APPLY<n>`
 
 | code          | stack                                    | env  | accu | extra_args |
 | ------------- | ---------------------------------------- | ---- | ---- | ---------- |
@@ -51,7 +51,7 @@ There is a group of `APPLY` instructions.
 
 `<n>` is 1 .. 4.
 
-`APPTERM`
+### `APPTERM`
 
 I don't know when will generate the `APPTERM` instruction.
 
@@ -83,11 +83,11 @@ what `appterm:` does is as follow:
 
 There is no `pc.e.n` sequence on the stack, so that's something like tailcall, i think.
 
-`APPTERM<n>`
+### `APPTERM<n>`
 
 OK, the `NARGS=k` is removed from the codestream, `NARGS=<n>` now. So that's what `APPTERM<n>` does.
 
-`RETURN<k>`
+### `RETURN<k>`
 
 | code      | stack                                    | env  | accu | extra_args |           |
 | --------- | ---------------------------------------- | ---- | ---- | ---------- | --------- |
@@ -97,7 +97,7 @@ OK, the `NARGS=k` is removed from the codestream, `NARGS=<n>` now. So that's wha
 
 If the instruction is `RETURN`, not `RETURN1` or `RETURN2` etc, then the k is taken from the code stream, a 2-byte k.
 
-`RESTART`
+### `RESTART`
 
 | code      | stack                           | env                                  | accu | extra_args |
 | --------- | ------------------------------- | ------------------------------------ | ---- | ---------- |
@@ -106,21 +106,107 @@ If the instruction is `RETURN`, not `RETURN1` or `RETURN2` etc, then the k is ta
 
 k is `Wosize_val(env) - 2`, seems wired, defer to figure it out later.
 
-`GRAB`
+### `GRAB`
 
 | code       | stack                                    | env  | accu      | extra_args |           |
 | ---------- | ---------------------------------------- | ---- | --------- | ---------- | --------- |
 | grab; k; c | s as a<sub>0</sub>a<sub>1</sub>...a<sub>n</sub>.pc.e'.n'.s' | e    | a         | n          |           |
 | c          | s                                        | e    | a         | n-k        | if n >= k |
-| pc         | s'                                       | e'   | Clos(...) | n'         | if m < k  |
+| pc         | s'                                       | e'   | Clos(...) | n'         | if n < k  |
 
-Note: k is the required argument number. if `n < k`, then we need to build a closure, `Clos(n+1, pc=[restart; grab; k; c])`.
+Note: k is the required argument number. if `n < k`, then we need to build a closure, `Clos(n+1, pc=[restart; grab; k; c], a_0 ... a_n)`.
 
 There is always a `RESTART` before `GRAB; k`. So the Clos's pc just pointed to `curr_pc - 3`.
 
-`CLOSURE`
+### `CLOSURE`
 
-`CLOSREC`
+```c
+nvars = u8pc; pc += 1;
+accu = Alloc_small(1 + nvars, Closure_tag);
+Code_val(accu) = JUMPTGT(s32pc);
+for i=0; i<nvars; i++ {
+    Field(accu, i+1) = sp[i]
+}
+```
+
+### `CLOSREC`
+
+Similar to `CLOSURE`, but pass one more arg as first arg, that's `accu` its self.
+
+## For recursive definitions
+
+At line 632,
+
+`DUMMY`
+
+`UPDATE`
+
+## Exeptions
+
+One more register, `trapsp`.
+
+One example,
 
 
+```plain
+exception UserExc of string             label 1;                    
+                                        pushtrap 2;  ----------------+
+fun foo x =                             access 4;                    |
+  (                                     push;                        |
+  if x < 5 then                         5;                           |
+    raise UserExc "less 5" -----\       test:ge 5;   -------------+  |
+  else                           \--->  get_global exc1.UserExc/1;|  |
+    x + 3  -------------------\         push;                     |  |
+  )                            |        "less 5";                 |  |
+  handle  ---------------\     |        makeblock 0:1 2;          |  |
+    UserExc x =>          |    |        raise;                    |  |
+      (print "oops"; 7)   |    +----->  label 5;   <--------------+  |
+    | _ =>                |             access 4;                    |
+      (                   |             push;                        |
+      print "fox"; 8)     |             3;                           |
+    ;                     |             smladdint;                   |
+                          |             label 4;                     |
+                          |             poptrap;                     |
+                          |             return 1;                    |
+                          +---------->  label 2;   <-----------------+
+                                        push;                       
+                                        access 0;                   
+                                        getfield 0;                 
+                                        push;                       
+                                        get_global exc1.UserExc/1;  
+                                        test:noteq_test 3;          
+                                        "oops";                     
+                                        push;                       
+                                        get_global Misc.print/0;    
+                                        apply 1;                    
+                                        7;                          
+                                        return 2;                   
+                                        label 3;                    
+                                        "fox";                      
+                                        push;                       
+                                        get_global Misc.print/0;    
+                                        apply 1;                    
+                                        8;                          
+                                        return 2                    
+```
+### `PUSHTRAP`
+
+Push `s32pc`, `trapsp`, `env`, `extra_args` on the stack. And set `trasp = sp`.
+
+And `s32pc` is from code stream, it should be pointed to the handler's entry.
+
+### `POPTRAP`
+
+```c
+	trapsp = sp[1];
+	sp += 4;	// remove s32pc, trapsp, env, extra_args from stack.
+```
+
+### `RAISE`
+
+Set `sp=trapsp`, then restore `s32pc`, `trapsp`, `env`, `extra_args` from the stack. Execute code from `s32pc`.
+
+## Others
+
+Instructions related to globals, blocks(tuple/list), vector, string,  etc.
 
