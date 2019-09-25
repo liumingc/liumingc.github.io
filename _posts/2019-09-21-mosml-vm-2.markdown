@@ -128,6 +128,18 @@ for i=0; i<nvars; i++ {
     Field(accu, i+1) = sp[i]
 }
 ```
+The instruction `Kclosure (lbl, freevarSz)`, 
+
+| code               | stack                             | env  | accu         | extra_args |
+| ------------------ | --------------------------------- | ---- | ------------ | ---------- |
+| closure; k; lbl; c | a<sub>1</sub>...a<sub>k-1</sub>.s | e    | a            | n          |
+| c                  | s                                 | e    | Clos(lbl, k) | n          |
+
+The register, accu, points to the clos, and the clos has an array of size k, with values:
+
+[a, a<sub>1</sub>, ..., a<sub>k-1</sub>]
+
+`ENVACC` is used to access closure's free variable. When `Pr_zam` print the instruction, with `clos lbl sz`, the sequence is different from the code stream(that's bad inconsistent, i think).
 
 ### `CLOSREC`
 
