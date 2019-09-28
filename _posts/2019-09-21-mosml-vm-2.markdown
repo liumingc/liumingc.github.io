@@ -33,10 +33,10 @@ The first line is the old state, the next line is the next state
 
 ### `APPLY`
 
-| code        | stack | env  | accu | extra_args |
-| ----------- | ----- | ---- | ---- | ---------- |
-| apply(n');c | s     | e    | a    | n          |
-| a(0)        | s     | a    | a    | n'         |
+| code       | stack | env  | accu | extra_args |
+| ---------- | ----- | ---- | ---- | ---------- |
+| apply n';c | s     | e    | a    | n          |
+| a(0)       | s     | a    | a    | n'         |
 
 PS: will check stack, so maybe there is a realloc of stack when `APPLY`.
 
@@ -50,6 +50,29 @@ There is a group of `APPLY` instructions.
 | a(0)          | a<sub>1</sub>.a<sub>2</sub>...a<sub>n</sub>.pc.e.n.s | a    | a    | `<n>-1`    |
 
 `<n>` is 1 .. 4.
+
+Then, do a `goto apply`, which will try to:
+
+```
+pc  <- accu[0]
+env <- accu
+```
+
+And there is a check stack & check signal here.
+
+Note that APPLY didnt save pc/env, but APPLY\<n\> does save pc/env.
+Let's check `Emitcode.sml#132`:
+
+```sml
+fun emit_zam zam =
+  case zam of
+  Kapply n =>
+    (checkArguments n;
+     if n < 5 then out (APPLY1 + n - 1) else (out APPLY; out n))
+  | ...
+```
+
+So when you see `APPLY n` in pr\_zam, it means `APPLY<n>` if n \< 5.
 
 ### `APPTERM`
 
@@ -144,6 +167,54 @@ The register, accu, points to the clos, and the clos has an array of size k, wit
 ### `CLOSREC`
 
 Similar to `CLOSURE`, but pass one more arg as first arg, that's `accu` its self.
+
+### Example of currying
+
+I'll finish this section with an example. For example, this is file `grab2.sml`:
+
+```sml
+fun f a1 a2 a3 a4 a5 = a1 + a2 + a3 + a4 + a5
+
+local
+	val f1 = f 3 4
+in
+	val x = f1 5 6 7
+end
+```
+
+When you define a function with more than 1 arg, then the compiler will generate the following prelude instruction:
+
+```
+	restart
+	label 1;
+	grab 4;	// 5 - 1
+```
+
+When you call it, `val f1 = f 3 4`
+
+```
+4; push; 3 push; get_global grab2.f/1;
+apply 2; // apply<2>, here will save pc/env, and jump to f's entry
+set_global grab2.f1/2;
+```
+
+`restart` will try to get previous args from `grab2.f/1`, but got 0 args.
+
+`grab` find out that `f` needs 5 args, but 2 is given.
+
+So i can't fully apply the function now, instead, it build a closure and return.
+
+This new closure, is like a wrapper of `grab2.f/1`, with 2 additional arguments.
+
+When executing `val x = f1 5 6 7`
+
+Now we have 3 extra args, we encounter `restart` again.
+
+But this time, `restar` will get `3 4` these 2 additional arguments from the closure `grab2.f1/2`,
+
+so after restart, extra_arg number become 2 + 3 = 5, and the stack has `3 4 5 6 7`, meet `grab 4` now,
+
+so now you can safely apply the function.
 
 ## For recursive definitions
 
