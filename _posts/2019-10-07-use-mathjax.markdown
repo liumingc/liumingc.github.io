@@ -1,9 +1,9 @@
 Equation 1:
 
-$$ \frac{1}{x^2 + 1} $$
+\[ \frac{1}{x^2 + 1} \]
 
 Equation 2 (inline):
-$ \sum_0^\infty $
+\( \sum_0^\infty \)
 
 Equation 3:
 
