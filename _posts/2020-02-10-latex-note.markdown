@@ -75,7 +75,7 @@ to include the figures.
 
 ## TODO
 
-Equations, table, cross refs.
+Equations, table.
 
 ## Quetions
 
