@@ -75,6 +75,19 @@ to include the figures.
 \ref{item:one}
 ```
 
+## Handling packages
+
+Use `tlmgr` to find out information about package.
+
+```bash
+dnf search texnames # find nothing
+tlmgr info texnames
+#  Packages containing files matching `texnames':
+#  beebe:
+#        texmf-dist/tex/generic/beebe/texnames.sty
+sudo dnf install beebe # tlmgr recommend using dnf to install the package
+```
+
 ## TODO
 
 Equations, table.
