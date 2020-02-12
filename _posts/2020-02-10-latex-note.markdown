@@ -88,6 +88,23 @@ tlmgr info texnames
 sudo dnf install beebe # tlmgr recommend using dnf to install the package
 ```
 
+## How to convert tex into pdf(The XXX Book)?
+
+Relace
+```tex
+\loop\iftrue
+  \errmessage{...}
+\pausing1 \input manmac
+```
+with
+```tex
+\loop\iffalse
+  \errmessage{...}
+\input manmac
+\newif\ifproofmode
+\proofmodefalse
+```
+
 ## TODO
 
 Equations, table.
