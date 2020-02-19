@@ -1,0 +1,129 @@
+---
+layout: post
+title:  "metapost &metafont note"
+date:   2020-02-11 00:06:00 +0800
+categories: jekyll update
+---
+
+This is not a complete guide, just to get me start to remember quickly.
+
+## language note
+
+Metapost is quite different from normal programming languages.
+### reading tokens
+`.` when followed by number, then it's a math dot. otherwise, it's just like a white space char.
+So, `bye.` and `bye ` is the same.
+And `a4l` is similar to `a[4].l` in other language.
+
+### data types
+- boolean
+- numeric
+- pair
+- path
+- picture
+- transform
+- string
+- pen
+- color
+
+### control flow
+`if <cond>: <then-part> elseif <cond2>: <part2> else: <part3> fi`
+
+`for i := 1 upto 5: <loop-body> endfor`
+
+`for i := a, b, c: <loop-body> endfor`
+
+`forsuffixes t = s: <loop-body> endfor`
+
+### macro definition
+`def <macname>(argtype arg1, arg2)(argtype2 arg3) = <macbody> endef`
+
+`vardef <macname>(argtype arg1, arg2)(argtype2 arg3) = <macbody> endef`
+
+`primarydef lhs <macname> rhs = <macbody> endef`
+
+`secondarydef lhs <macname> rhs = <macbody> endef`
+
+`input <file>`
+
+`scantokens "input plain"`
+
+## Skeleton
+
+```metapost
+beginfig(1);
+% your code here
+pair z1, z2;
+z1 := (10, 0); z2 := (12, 5)
+draw (0, 0) -- z1 .. z2 .. cycle
+dotlabel.bot("middle", .5[z1, z2])
+endfig;
+
+beginfig(2);
+endfig;
+
+end.
+```
+
+## Drawing boxes
+
+```metapost
+input boxes
+input rboxes
+
+%
+boxjoin(a.c+(10,0)=b.c);
+boxit.a(btex $ \cdots $ etex);
+rboxit.big(btex outline etex);
+circleit.cc("circ");
+drawboxed(a, big);
+label.bot("mark+", a.s);
+
+drawarrow a.n -- big.e;
+```
+
+## Some macros
+
+```metapost
+vardef diadmondit@#(text tt) =
+  beginbox_("diadpath_", "sizebox_", @#, tt);
+  % copy from boxes circleit
+  generic_declare(pair) _n.n, _n.s, _n.e, _n.w;
+  @#e-@#c = @#c-@#w = (@#dx,0) + .5*(lrcorner pic_@#-llcorner pic_@#);
+  @#n-@#c = @#c-@#s = (0,@#dy) + .5*(ulcorner pic_@#-llcorner pic_@#);
+  endbox_(clearc_,@#)
+enddef;
+
+def diadpath_(suffix $) =
+  $.e -- $.n -- $.w -- $.s -- cycle
+enddef;
+
+vardef drawshadowed(text t) =
+  fixsize(t);
+  forsuffixes s=t:
+    fill bpath.s shifted (1pt,-1pt);
+    unfill bpath.s;
+    drawboxed(s);
+  endfor
+enddef;
+```
+
+## Some metrics
+
+```
+1in = 2.54cm = 72.27pt
+```
+
+## enter active mode
+After start `mf` or `mpost`, type `\relax` to enter active mode, instead of input file name.
+Use `showvariable draw, z` to check var info.
+Example:
+```
+*showvariable rotatedaround
+> rotatedaround=macro:
+(EXPR0)(EXPR1)->shifted-(EXPR0)rotated(EXPR1)shifted(EXPR0)
+```
+
+## references
+
+- metafont [knuth-dist](https://ctan.org/tex-archive/systems/knuth/dist)
