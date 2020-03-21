@@ -62,6 +62,7 @@ int foo;
 \includegraphics{foo.1}
 ```
 to include the figures.
+And you can use `\begin{figure} ... \end{figure}` to surround the figure/graph.
 
 ### tikz
 
@@ -104,6 +105,11 @@ with
 \newif\ifproofmode
 \proofmodefalse
 ```
+
+## Some useful commands
+
+To show some special words,
+`\verb|your text|` or `\begin{verbatim} ... \end{verbatim}` to surround the text.
 
 ## TODO
 
